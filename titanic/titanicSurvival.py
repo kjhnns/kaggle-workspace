@@ -1,9 +1,8 @@
 from sklearn import preprocessing,tree
-from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier
+from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier, VotingClassifier
 from sklearn.naive_bayes import GaussianNB
 from sklearn.model_selection import cross_val_score
 from sklearn.preprocessing import Imputer
-from mlxtend.classifier import StackingClassifier
 from sklearn.neighbors import KNeighborsClassifier
 
 
@@ -28,14 +27,10 @@ def main():
     print "knn"
     clf4 =knn(sample, target)
 
-
-    mclf = tree.DecisionTreeClassifier(max_depth=10)
+    print "\nVotingClassifier"
+    mclf = VotingClassifier(estimators=[('rndForest',clf1),('adaboost',clf2), ('gaussianbayes',clf3),("knn",clf4)], voting='soft',weights=[1,2,1,1])
     mclf.fit(sample, target)
-
-    sclf = StackingClassifier(classifiers=[clf1,clf3, clf2,clf4], meta_classifier=mclf)
-    sclf = sclf.fit(sample, target)
-    print "sclf"
-    validation(sclf, sample, target)
+    validation(mclf, sample, target)
 
 
 
@@ -56,26 +51,26 @@ def validation(clf, sample, target):
 
 def knn(sample, target):
     clf = KNeighborsClassifier(n_neighbors=3)
-    clf = clf.fit(sample, target)
+    #clf = clf.fit(sample, target)
     validation(clf, sample, target)
     return clf
 
 
 def gaussianbayes(sample, target):
     gnb = GaussianNB()
-    gnb.fit(sample, target)
+    #gnb.fit(sample, target)
     validation(gnb, sample, target)
     return gnb
 
 def rndForest(sample, target):
     clf = RandomForestClassifier(n_estimators=10)
-    clf = clf.fit(sample, target)
+    #clf = clf.fit(sample, target)
     validation(clf, sample, target)
     return clf
 
 def adaboost(sample, target):
     clf = AdaBoostClassifier(tree.DecisionTreeClassifier(max_depth=5), n_estimators=100)
-    clf = clf.fit(sample, target)
+    #clf = clf.fit(sample, target)
     validation(clf, sample, target)
     return clf
 
