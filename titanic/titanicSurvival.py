@@ -1,8 +1,10 @@
 from sklearn import preprocessing,tree
-from sklearn.ensemble import AdaBoostClassifier
+from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier
+from sklearn.naive_bayes import GaussianNB
 from sklearn.model_selection import cross_val_score
-from sklearn import metrics
 from sklearn.preprocessing import Imputer
+from mlxtend.classifier import StackingClassifier
+from sklearn.neighbors import KNeighborsClassifier
 
 
 import numpy as np
@@ -17,14 +19,25 @@ def main():
     sample = preProcessing(sample)
     sample = imputer(sample)
 
+    print "rndForest"
+    clf1 = rndForest(sample, target)
+    print "adaboost"
+    clf2 =adaboost(sample, target)
+    print "gaussianbayes"
+    clf3 =gaussianbayes(sample, target)
+    print "knn"
+    clf4 =knn(sample, target)
 
-    clf = AdaBoostClassifier(tree.DecisionTreeClassifier(max_depth=5), n_estimators=100)
-    # clf = tree.DecisionTreeClassifier() # Decision Tree
+
+    mclf = tree.DecisionTreeClassifier(max_depth=10)
+    mclf.fit(sample, target)
+
+    sclf = StackingClassifier(classifiers=[clf1,clf3, clf2,clf4], meta_classifier=mclf)
+    sclf = sclf.fit(sample, target)
+    print "sclf"
+    validation(sclf, sample, target)
 
 
-    clf = clf.fit(sample, target)
-    scores = cross_val_score(clf, sample, target, cv=10)
-    print("Accuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
 
 
 
@@ -36,6 +49,35 @@ def main():
 
     # print clf.predict(test)
 
+
+def validation(clf, sample, target):
+    scores = cross_val_score(clf, sample, target, cv=10)
+    print("Accuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
+
+def knn(sample, target):
+    clf = KNeighborsClassifier(n_neighbors=3)
+    clf = clf.fit(sample, target)
+    validation(clf, sample, target)
+    return clf
+
+
+def gaussianbayes(sample, target):
+    gnb = GaussianNB()
+    gnb.fit(sample, target)
+    validation(gnb, sample, target)
+    return gnb
+
+def rndForest(sample, target):
+    clf = RandomForestClassifier(n_estimators=10)
+    clf = clf.fit(sample, target)
+    validation(clf, sample, target)
+    return clf
+
+def adaboost(sample, target):
+    clf = AdaBoostClassifier(tree.DecisionTreeClassifier(max_depth=5), n_estimators=100)
+    clf = clf.fit(sample, target)
+    validation(clf, sample, target)
+    return clf
 
 
 
